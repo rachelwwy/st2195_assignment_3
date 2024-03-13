@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar 12 17:30:32 2024
+
+@author: wongrachel
+"""
+
+
+import os
+try: 
+    os.remove('Airline2.db')
+except OSError:
+    pass
+
+import sqlite3
+conn = sqlite3.connect("Airline2.db")
+
+import pandas as pd
+
+airports = pd.read_csv("airports.csv")
+planes = pd.read_csv("plane-data.csv") 
+carriers = pd.read_csv("carriers.csv")
+ontime = pd.read_csv("combined.csv", encoding = "latin-1")
+
+c = conn.cursor()
+c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+
+q1 = c.execute('''
+               SELECT model AS model, AVG(ontime.DepDelay) AS avg_delay
+
+FROM planes JOIN ontime USING(tailnum)
+
+WHERE ontime.Cancelled = 0 AND ontime.Diverted = 0 AND ontime.DepDelay > 0
+
+GROUP BY model
+
+ORDER BY avg_delay''') .fetchall()
+
+pd.DataFrame(q1)
